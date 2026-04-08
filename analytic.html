@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics — P20 DDN</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #f1f5f9; color: #1e293b; }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1e3a5f, #2563eb);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .header-title { color: #fff; font-size: 16px; font-weight: 800; }
+    .header-sub { color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 1px; }
+    .btn-back {
+      padding: 7px 14px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; }
+
+    /* ── Live indicator ── */
+    .live-row {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #64748b; margin-bottom: 16px;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #10b981;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+    /* ── KPI grid ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .kpi {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+    }
+    .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 6px; }
+    .kpi-val { font-size: 28px; font-weight: 800; color: #1e3a5f; line-height: 1; }
+    .kpi-val.green { color: #10b981; }
+    .kpi-sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 14px 16px 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 99px;
+      background: #eff6ff; color: #2563eb;
+    }
+    .card-body { padding: 12px 16px 16px; }
+
+    /* ── Session split ── */
+    .split-bar {
+      height: 8px; border-radius: 99px; overflow: hidden;
+      background: #f1f5f9; display: flex; margin-bottom: 10px;
+    }
+    .split-am { background: #3b82f6; height: 100%; transition: width 0.7s; }
+    .split-pm { background: #a78bfa; height: 100%; transition: width 0.7s; }
+    .split-labels { display: flex; justify-content: space-between; }
+    .split-lbl { font-size: 12px; color: #64748b; }
+    .split-lbl b { font-size: 16px; display: block; }
+    .split-lbl b.am { color: #3b82f6; }
+    .split-lbl b.pm { color: #a78bfa; }
+
+    /* ── User list ── */
+    .user-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0; border-bottom: 1px solid #f1f5f9;
+    }
+    .user-item:last-child { border-bottom: none; }
+    .user-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .ui-mobile { background: #eff6ff; }
+    .ui-desktop { background: #f0fdf4; }
+    .user-name { font-size: 13px; font-weight: 700; }
+    .user-time { font-size: 11px; color: #94a3b8; }
+    .ubadge {
+      margin-left: auto; font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 6px; text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .ub-m { background: #eff6ff; color: #2563eb; }
+    .ub-d { background: #f0fdf4; color: #059669; }
+    .empty { padding: 20px; text-align: center; color: #94a3b8; font-size: 13px; }
+
+    /* ── Bar rows (device & storage) ── */
+    .bar-row { margin-bottom: 12px; }
+    .bar-row:last-child { margin-bottom: 0; }
+    .bar-head { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 5px; }
+    .bar-head span:last-child { color: #94a3b8; font-weight: 600; font-family: monospace; }
+    .bar-track { height: 7px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; transition: width 0.8s; }
+
+    /* ── Storage total ── */
+    .storage-total {
+      margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .storage-total-label { font-size: 13px; font-weight: 700; }
+    .storage-total-val { font-size: 16px; font-weight: 800; color: #1e3a5f; }
+    .storage-quota { font-size: 11px; color: #94a3b8; margin-top: 2px; text-align: right; }
+
+    /* ── Counts row ── */
+    .counts-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .count-item {
+      text-align: center; padding: 12px 8px;
+      border-right: 1px solid #f1f5f9;
+    }
+    .count-item:last-child { border-right: none; }
+    .count-val { font-size: 20px; font-weight: 800; color: #1e3a5f; }
+    .count-lbl { font-size: 10px; color: #94a3b8; margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    @media (max-width: 400px) {
+      .kpi-val { font-size: 24px; }
+      .counts-grid { grid-template-columns: 1fr 1fr; }
+      .count-item:nth-child(2) { border-right: none; }
+      .count-item:nth-child(3) { border-right: 1px solid #f1f5f9; border-top: 1px solid #f1f5f9; }
+      .count-item:nth-child(4) { border-top: 1px solid #f1f5f9; border-right: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">📊 Analytics</div>
+    <div class="header-sub">P20 DDN Control Number System</div>
+  </div>
+  <a href="admin.html" class="btn-back">← Admin</a>
+</div>
+
+<div class="wrap">
+
+  <div class="live-row">
+    <div class="live-dot"></div>
+    <span id="last-updated">Connecting…</span>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Online Now</div>
+      <div class="kpi-val green" id="kpi-online">—</div>
+      <div class="kpi-sub">Active sessions</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Visitors</div>
+      <div class="kpi-val" id="kpi-visitors">—</div>
+      <div class="kpi-sub">All-time unique</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Tickets Today</div>
+      <div class="kpi-val" id="kpi-tickets">—</div>
+      <div class="kpi-sub" id="kpi-tickets-sub">AM: — · PM: —</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">DB Size</div>
+      <div class="kpi-val" id="kpi-dbsize" style="font-size:18px; padding-top:5px;">—</div>
+      <div class="kpi-sub">Estimated</div>
+    </div>
+  </div>
+
+  <!-- Session split -->
+  <div class="card">
+    <div class="card-head">Today's Session Split</div>
+    <div class="card-body">
+      <div class="split-bar">
+        <div class="split-am" id="split-am" style="width:50%"></div>
+        <div class="split-pm" id="split-pm" style="width:50%"></div>
+      </div>
+      <div class="split-labels">
+        <div class="split-lbl"><b class="am" id="am-val">0</b>AM Tickets</div>
+        <div class="split-lbl" style="text-align:right"><b class="pm" id="pm-val">0</b>PM Tickets</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active sessions -->
+  <div class="card">
+    <div class="card-head">
+      Active Sessions
+      <span class="card-badge" id="online-badge">0 online</span>
+    </div>
+    <div class="card-body" style="padding-top:8px; padding-bottom:8px;">
+      <div id="active-list"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- Device breakdown -->
+  <div class="card">
+    <div class="card-head">Device Breakdown</div>
+    <div class="card-body">
+      <div class="bar-row">
+        <div class="bar-head"><span>📱 Mobile</span><span id="mobile-pct">0%</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-mobile" style="background:#3b82f6; width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span>💻 Desktop</span><span id="desktop-pct">0%</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-desktop" style="background:#10b981; width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Storage -->
+  <div class="card">
+    <div class="card-head">
+      🗄️ Firebase Storage Usage
+      <span class="card-badge">1 GB free</span>
+    </div>
+    <div class="card-body">
+      <div class="bar-row">
+        <div class="bar-head"><span>tickets/</span><span id="sz-tickets">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="sfill-tickets" style="background:#3b82f6; width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span>takenNumbers/</span><span id="sz-taken">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="sfill-taken" style="background:#a78bfa; width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span>presence/</span><span id="sz-presence">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="sfill-presence" style="background:#10b981; width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span>visitors/</span><span id="sz-visitors">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="sfill-visitors" style="background:#f59e0b; width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span>disabledNumbers/</span><span id="sz-disabled">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="sfill-disabled" style="background:#ef4444; width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span>scheduleSettings/</span><span id="sz-schedule">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="sfill-schedule" style="background:#06b6d4; width:0%"></div></div>
+      </div>
+
+      <div class="storage-total">
+        <div class="storage-total-label">Total Estimated</div>
+        <div>
+          <div class="storage-total-val" id="sz-total">—</div>
+          <div class="storage-quota" id="sz-quota">of 1,024 MB free quota</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="counts-grid">
+      <div class="count-item">
+        <div class="count-val" id="cnt-tickets">—</div>
+        <div class="count-lbl">Tickets</div>
+      </div>
+      <div class="count-item">
+        <div class="count-val" id="cnt-taken">—</div>
+        <div class="count-lbl">Taken #s</div>
+      </div>
+      <div class="count-item">
+        <div class="count-val" id="cnt-sessions">—</div>
+        <div class="count-lbl">Sessions</div>
+      </div>
+      <div class="count-item">
+        <div class="count-val" id="cnt-visitors">—</div>
+        <div class="count-lbl">Visitors</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+  firebase.initializeApp({
+            apiKey: "AIzaSyBiRztscu7ZjwfE_rliiZkKYe0Octe8RXY",
+            authDomain: "fti-compostela.firebaseapp.com",
+            projectId: "fti-compostela",
+            storageBucket: "fti-compostela.firebasestorage.app",
+            messagingSenderId: "396090136019",
+            appId: "1:396090136019:web:11ad517f2b79921c5f8b26",
+            measurementId: "G-7L06470VM5"
+  });
+  const db = firebase.database();
+
+  function today() { return new Date().toISOString().slice(0, 10); }
+  function fmtTime(ts) { return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); }
+  function estimateBytes(val) {
+    try { return new TextEncoder().encode(JSON.stringify(val)).length; } catch { return 0; }
+  }
+  function fmtBytes(b) {
+    if (!b || b < 1) return '0 B';
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  const FREE_QUOTA = 1024 * 1024 * 1024;
+  let sizeMap = {};
+
+  function setStorage(key, val, fillId, szId, max) {
+    const bytes = estimateBytes(val);
+    sizeMap[key] = bytes;
+    document.getElementById(szId).textContent = fmtBytes(bytes);
+    document.getElementById(fillId).style.width = Math.min((bytes / max) * 100, 100) + '%';
+    refreshTotal();
+  }
+
+  function refreshTotal() {
+    const total = Object.values(sizeMap).reduce((a, b) => a + b, 0);
+    document.getElementById('sz-total').textContent = fmtBytes(total);
+    document.getElementById('kpi-dbsize').textContent = fmtBytes(total);
+    const pct = (total / FREE_QUOTA * 100).toFixed(4);
+    document.getElementById('sz-quota').textContent = pct + '% of 1,024 MB free quota';
+  }
+
+  function bumpTime() {
+    document.getElementById('last-updated').textContent = 'Live · updated ' + fmtTime(Date.now());
+  }
+
+  // presence
+  db.ref("presence").on("value", snap => {
+    const users = snap.val() || {};
+    const count = Object.keys(users).length;
+    document.getElementById('kpi-online').textContent = count;
+    document.getElementById('online-badge').textContent = count + ' online';
+    document.getElementById('cnt-sessions').textContent = count;
+
+    const list = document.getElementById('active-list');
+    if (!count) {
+      list.innerHTML = '<div class="empty">No active sessions</div>';
+    } else {
+      const entries = Object.values(users);
+      let mobile = 0;
+      list.innerHTML = entries.map(u => {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(u.ua || '');
+        if (isMobile) mobile++;
+        return `<div class="user-item">
+          <div class="user-icon ${isMobile ? 'ui-mobile' : 'ui-desktop'}">${isMobile ? '📱' : '💻'}</div>
+          <div>
+            <div class="user-name">${isMobile ? 'Mobile User' : 'Desktop User'}</div>
+            <div class="user-time">${u.lastActive ? fmtTime(u.lastActive) : '—'}</div>
+          </div>
+          <div class="ubadge ${isMobile ? 'ub-m' : 'ub-d'}">${isMobile ? 'Mobile' : 'Desktop'}</div>
+        </div>`;
+      }).join('');
+      const mPct = Math.round((entries.filter(u => /iPhone|iPad|iPod|Android/i.test(u.ua||'')).length / count) * 100);
+      document.getElementById('mobile-pct').textContent = mPct + '%';
+      document.getElementById('desktop-pct').textContent = (100 - mPct) + '%';
+      document.getElementById('bar-mobile').style.width = mPct + '%';
+      document.getElementById('bar-desktop').style.width = (100 - mPct) + '%';
+    }
+
+    setStorage('presence', users, 'sfill-presence', 'sz-presence', 50 * 1024);
+    bumpTime();
+  });
+
+  // visitors
+  db.ref("visitors").on("value", snap => {
+    document.getElementById('kpi-visitors').textContent = snap.numChildren();
+    document.getElementById('cnt-visitors').textContent = snap.numChildren();
+    setStorage('visitors', snap.val(), 'sfill-visitors', 'sz-visitors', 200 * 1024);
+  });
+
+  // Total tickets (one-time on load to avoid repeated large downloads)
+  db.ref("tickets").once("value", allSnap => {
+    const count = allSnap.numChildren();
+    document.getElementById('cnt-tickets').textContent = count;
+    setStorage('tickets', allSnap.val(), 'sfill-tickets', 'sz-tickets', 500 * 1024);
+  });
+
+  // tickets (Live for today only)
+  db.ref("tickets").orderByChild("date").equalTo(today()).on("value", snap => {
+    let am = 0, pm = 0;
+    snap.forEach(c => {
+      const t = c.val();
+      t.time === 'AM' ? am++ : pm++;
+    });
+    const total = am + pm;
+    document.getElementById('kpi-tickets').textContent = total;
+    document.getElementById('kpi-tickets-sub').textContent = 'AM: ' + am + ' · PM: ' + pm;
+    document.getElementById('am-val').textContent = am;
+    document.getElementById('pm-val').textContent = pm;
+    const d = total || 1;
+    document.getElementById('split-am').style.width = ((am / d) * 100) + '%';
+    document.getElementById('split-pm').style.width = ((pm / d) * 100) + '%';
+  });
+
+  // takenNumbers
+  db.ref("takenNumbers").on("value", snap => {
+    const data = snap.val() || {};
+    let entries = 0;
+    Object.values(data).forEach(d => { entries += Object.keys(d || {}).length; });
+    document.getElementById('cnt-taken').textContent = entries;
+    setStorage('takenNumbers', data, 'sfill-taken', 'sz-taken', 100 * 1024);
+  });
+
+  // disabledNumbers
+  db.ref("disabledNumbers").on("value", snap => {
+    setStorage('disabledNumbers', snap.val(), 'sfill-disabled', 'sz-disabled', 20 * 1024);
+  });
+
+  // scheduleSettings
+  db.ref("scheduleSettings").on("value", snap => {
+    setStorage('scheduleSettings', snap.val(), 'sfill-schedule', 'sz-schedule', 5 * 1024);
+  });
+</script>
+</body>
+</html>
