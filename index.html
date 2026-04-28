@@ -13,7 +13,7 @@
     <body>
       <div class="loading-overlay" id="time-sync-overlay">
         <div class="spinner"></div>
-        <div class="loading-text">Synchronizing Server Time...</div>
+        <div class="loading-text">Just a moment...</div>
       </div>
 
       <!-- Welcome / Beta Notice Popup -->
@@ -176,7 +176,7 @@
       <div class="drawer" id="drawer">
         <div class="drawer-header">
           <div class="drawer-logo">🎫</div>
-          <div class="drawer-title">P20 COMPOSTELA</div>
+          <div class="drawer-title">P20 Compostela</div>
           <button class="drawer-close" onclick="closeMenu()">✕</button>
         </div>
         <div class="drawer-section-label" data-i18n="menuLanguage">
@@ -1121,7 +1121,7 @@
       <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
       <script>
         const firebaseConfig = {
-         apiKey: "AIzaSyBiRztscu7ZjwfE_rliiZkKYe0Octe8RXY",
+        apiKey: "AIzaSyBiRztscu7ZjwfE_rliiZkKYe0Octe8RXY",
         authDomain: "fti-compostela.firebaseapp.com",
         projectId: "fti-compostela",
         storageBucket: "fti-compostela.firebasestorage.app",
@@ -1159,14 +1159,33 @@
         let syncPerformanceTime = performance.now();
         let syncServerTime = Date.now();
         let serverTimeSynced = false;
+        let initialized = false;
+        let maxWaitTimeout = null;
+
+
+        // MAX wait: hide overlay after 500ms regardless (security still enforced in generateNumber())
+        maxWaitTimeout = setTimeout(() => {
+          if (!initialized) {
+            document.querySelector(".loading-text").textContent =
+              "⚠️ Cannot connect to server. Please check your internet and refresh.";
+            document.querySelector(".spinner").style.display = "none";
+          }
+        }, 5000);
 
         db.ref(".info/serverTimeOffset").on("value", (snap) => {
           serverTimeOffset = snap.val() || 0;
           syncPerformanceTime = performance.now();
           syncServerTime = Date.now() + serverTimeOffset;
-          if (!serverTimeSynced) {
-            serverTimeSynced = true;
-            initializeAfterSync();
+          serverTimeSynced = true; // Mark as fully synced now
+          
+          if (!initialized) {
+            clearTimeout(maxWaitTimeout); // Cancel the fallback
+            initialized = true;
+            now = getServerTime();
+            todayStr = toDateStr(now);
+            targetStr = toDateStr(getTargetDate(now));
+            document.getElementById("time-sync-overlay").classList.add("hide");
+            setTimeout(() => initializeAfterSync(), 50);
           }
         });
 
@@ -1815,6 +1834,7 @@
 
         // ─── CLAIMING STATUS ──────────────────────────────────────────────────────────
         function getClaimingStatus() {
+          if (!serverTimeSynced) return "blocked";
           if (!scheduleSettings.claimingEnabled) return "blocked";
           if (isGenerationClosed(getServerTime())) return "weekend";
           const n = getServerTime();
@@ -2785,14 +2805,12 @@
         }
 
         async function generateNumber() {
-          // Securely recalculate current time and target distribution date
-          // to prevent users from bypassing claiming windows by changing device time.
+            if (!serverTimeSynced) {
+              return toast("⏳ Cannot generate — server time not verified. Please refresh.");
+            }
           now = getServerTime();
           todayStr = toDateStr(now);
           targetStr = toDateStr(getTargetDate(now));
-
-          if (!serverTimeSynced)
-            return toast("Waiting for server time synchronization...");
           if (!isClaimingOpen()) {
             const s = getClaimingStatus();
             if (s === "blocked")
@@ -3730,4 +3748,3 @@
       </script>
     </body>
   </html>
-      
