@@ -63,8 +63,10 @@ body {
 }
 
 /* ── Header ── */
+.header1 {
+  background:#b10202;
+}
 .header {
-  background: var(--blue);
   color: white;
   padding: clamp(14px, 4vw, 20px) clamp(16px, 5vw, 24px);
   text-align: center;
